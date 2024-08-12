@@ -3,7 +3,7 @@ docker-dovecot
 
 Dovecot image based on Alpine Linux.
 
-It is opiniated in the sense, that currently "only" supports IMAP (STARTSSL), LMTP (used by SMTP servers as the "MTA"
+It is opiniated in the sense, that it currently "only" supports IMAP (STARTSSL), LMTP (used by SMTP servers as the "MTA"
 for local delivery), Sieve and LDAP authentication.
 
 Run
