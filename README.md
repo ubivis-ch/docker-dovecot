@@ -9,7 +9,7 @@ for local delivery), Sieve and LDAP authentication.
 Run
 ---
 
-There is no "simple" example, that would actually so anything useful. In order for this container to work you'll need
+There is no "simple" example, that would actually do anything useful. In order for this container to work you'll need
 a LDAP server that is reachable and a properly signed SSL keypair.
 
 Below you find a typical example of how to start a container. It's written as a Docker Compose file (`compose.yaml`) and 
