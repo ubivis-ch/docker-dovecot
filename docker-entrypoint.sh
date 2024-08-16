@@ -39,6 +39,14 @@ fi
 
 echo -n "
 # Config override ...
+service lmtp {
+  user = vmail
+
+  inet_listener lmtp {
+    port = 24
+  }
+}
+
 protocol lmtp {
   mail_plugins = \$mail_plugins sieve
 }
