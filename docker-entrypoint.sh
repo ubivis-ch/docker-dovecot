@@ -49,7 +49,7 @@ echo -n "
 # Config override ...
 userdb {
   driver = static
-  args = uid=vmail gid=vmail home=/home/vmail/%g/%n
+  args = uid=vmail gid=vmail home=/home/vmail/%d/%n
 }
 " >> /etc/dovecot/conf.d/auth-ldap.conf.ext
 
