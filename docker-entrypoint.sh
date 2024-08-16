@@ -33,7 +33,7 @@ if [ "${DOVECOT_SSL_CERTIFICATE}" != "/etc/ssl/dovecot/server.pem" ]; then
 fi
 
 if [ "${DOVECOT_SSL_PRIVATE_KEY}" != "/etc/ssl/dovecot/server.key" ]; then
-    echo "ssl_cert = <${DOVECOT_SSL_PRIVATE_KEY}" >> /etc/dovecot/conf.d/10-ssl.conf
+    echo "ssl_key = <${DOVECOT_SSL_PRIVATE_KEY}" >> /etc/dovecot/conf.d/10-ssl.conf
 fi
 
 
