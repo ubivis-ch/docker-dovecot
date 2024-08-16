@@ -8,7 +8,7 @@ echo -n "
 
 echo -n "
 # Config override ...
-mail_location = maildir:/home/vmail/%g/%n/Maildir
+mail_location = maildir:/home/vmail/%d/%n/Maildir
 mail_uid = vmail
 mail_gid = vmail
 " >> /etc/dovecot/conf.d/10-mail.conf
