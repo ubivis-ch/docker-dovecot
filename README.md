@@ -1,5 +1,5 @@
 docker-dovecot
-===============
+==============
 
 Dovecot image based on Alpine Linux.
 
@@ -122,4 +122,3 @@ https://github.com/ubivis-ch/docker-dovecot
 Please report any issues to:
 
 https://github.com/ubivis-ch/docker-dovecot/issues
-
