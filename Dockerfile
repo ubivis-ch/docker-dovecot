@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.21
 
 RUN apk add --no-cache \
         dovecot \
@@ -14,4 +14,3 @@ COPY docker-entrypoint.sh /
 EXPOSE 143 24
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
-
