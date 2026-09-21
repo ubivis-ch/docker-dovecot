@@ -1,76 +1,16 @@
 #!/bin/sh
 
-echo -n "
-# Config override ...
-!include auth-ldap.conf.ext
-" >> /etc/dovecot/conf.d/10-auth.conf
-
-
-echo -n "
-# Config override ...
-mail_location = maildir:/home/vmail/%d/%n/Maildir
-mail_uid = vmail
-mail_gid = vmail
-" >> /etc/dovecot/conf.d/10-mail.conf
-
-
-echo -n "
-# Config override ...
-log_path = /dev/stderr
-info_log_path = /dev/stdout
-" >> /etc/dovecot/conf.d/10-logging.conf
-
-
-echo -n "
-# Config override ...
-" >> /etc/dovecot/conf.d/10-ssl.conf
-
-DOVECOT_SSL_CERTIFICATE="${DOVECOT_SSL_CERTIFICATE:-/etc/ssl/dovecot/server.pem}"
-DOVECOT_SSL_PRIVATE_KEY="${DOVECOT_SSL_PRIVATE_KEY:-/etc/ssl/dovecot/server.key}"
-
-if [ "${DOVECOT_SSL_CERTIFICATE}" != "/etc/ssl/dovecot/server.pem" ]; then
-    echo "ssl_cert = <${DOVECOT_SSL_CERTIFICATE}" >> /etc/dovecot/conf.d/10-ssl.conf
-fi
-
-if [ "${DOVECOT_SSL_PRIVATE_KEY}" != "/etc/ssl/dovecot/server.key" ]; then
-    echo "ssl_key = <${DOVECOT_SSL_PRIVATE_KEY}" >> /etc/dovecot/conf.d/10-ssl.conf
-fi
-
-
-echo -n "
-# Config override ...
-service lmtp {
-  user = vmail
-
-  inet_listener lmtp {
-    port = 24
-  }
+contains_old_style_variables() {
+    case ${1-} in
+        *%u*|*%d*|*%n*|*%w*) return 0 ;;
+        *) return 1 ;;
+    esac
 }
-
-protocol lmtp {
-  mail_plugins = \$mail_plugins sieve
-}
-" >> /etc/dovecot/conf.d/20-lmtp.conf
-
-
-echo -n "
-# Config override ...
-userdb {
-  driver = static
-  args = uid=vmail gid=vmail home=/home/vmail/%d/%n
-}
-" >> /etc/dovecot/conf.d/auth-ldap.conf.ext
-
-
-echo -n "
-# Config override ...
-" >> /etc/dovecot/dovecot-ldap.conf.ext
 
 if [ -z "${DOVECOT_LDAP_HOST}" ]; then
     echo "Error: Missing mandatory DOVECOT_LDAP_HOST!"
     exit 1
 fi
-
 
 if [ -z "${DOVECOT_LDAP_USER_DN}" ]; then
     echo "Error: Missing mandatory DOVECOT_LDAP_USER_DN!"
@@ -82,23 +22,74 @@ if [ -z "${DOVECOT_LDAP_USER_PASSWORD}" ]; then
     exit 1
 fi
 
-echo "hosts = ${DOVECOT_LDAP_HOST}" >> /etc/dovecot/dovecot-ldap.conf.ext
-echo "dn = ${DOVECOT_LDAP_USER_DN}" >> /etc/dovecot/dovecot-ldap.conf.ext
-echo "dnpass = ${DOVECOT_LDAP_USER_PASSWORD}" >> /etc/dovecot/dovecot-ldap.conf.ext
-
-if [ -n "${DOVECOT_LDAP_BASE}" ]; then
-    echo "base = ${DOVECOT_LDAP_BASE}" >> /etc/dovecot/dovecot-ldap.conf.ext
+if contains_old_style_variables "${DOVECOT_LDAP_BASE}"; then
+    echo "Error: Using deprecated style variables in DOVECOT_LDAP_BASE!"
+    exit 1
 fi
 
-email_attr="${DOVECOT_LDAP_EMAIL_ATTRIBUTE:-uid}"
-password_attr="${DOVECOT_LDAP_PASSWORD_ATTRIBUTE:-userPassword}"
-
-echo "pass_attrs = ${email_attr}=user,${password_attr}=password" >> /etc/dovecot/dovecot-ldap.conf.ext
-
-if [ -n "${DOVECOT_LDAP_QUERY}" ]; then
-    echo "pass_filter = ${DOVECOT_LDAP_QUERY}" >> /etc/dovecot/dovecot-ldap.conf.ext
+if contains_old_style_variables "${DOVECOT_LDAP_QUERY}"; then
+    echo "Error: Using deprecated style variables in DOVECOT_LDAP_QUERY!"
+    exit 1
 fi
 
+echo -n "
+dovecot_config_version = 2.4.2
+dovecot_storage_version = 2.4.0
+
+info_log_path = /dev/stdout
+log_path = /dev/stderr
+
+protocols {
+  imap = yes
+  lmtp = yes
+}
+
+auth_mechanisms = plain
+
+mail_driver = maildir
+mail_uid = vmail
+mail_gid = vmail
+mail_path = /home/vmail/%{user | domain}/%{user | username}/Maildir
+
+namespace inbox {
+  inbox = yes
+}
+
+
+ssl = required
+
+ssl_server_cert_file = ${DOVECOT_SSL_CERTIFICATE:-/etc/ssl/dovecot/server.pem}
+ssl_server_key_file = ${DOVECOT_SSL_PRIVATE_KEY:-/etc/ssl/dovecot/server.key}
+
+service lmtp {
+  user = vmail
+
+  inet_listener lmtp {
+    port = 24
+  }
+}
+
+protocol lmtp {
+  mail_plugins {
+    sieve = yes
+  }
+}
+
+ldap_uris = ldap://${DOVECOT_LDAP_HOST}
+ldap_auth_dn = ${DOVECOT_LDAP_USER_DN}
+ldap_auth_dn_password = ${DOVECOT_LDAP_USER_PASSWORD}
+
+ldap_base = ${DOVECOT_LDAP_BASE:-}
+
+passdb ldap {
+  ldap_filter = ${DOVECOT_LDAP_QUERY:-(&(objectClass=posixAccount)(uid=%{user\}))}
+
+  fields {
+    password = %{ldap:${DOVECOT_LDAP_PASSWORD_ATTRIBUTE:-userPassword}}
+    user = %{ldap:${DOVECOT_LDAP_EMAIL_ATTRIBUTE:-uid}}
+  }
+}
+" > /etc/dovecot/dovecot.conf
 
 if [ "$#" -gt 0 ]; then
     exec "$@"
