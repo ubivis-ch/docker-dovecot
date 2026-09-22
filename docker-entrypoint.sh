@@ -75,11 +75,26 @@ protocol lmtp {
   }
 }
 
+service anvil {
+  unix_listener anvil-connect-limit {
+    group = vmail
+    mode = 0660
+  }
+}
+
 ldap_uris = ldap://${DOVECOT_LDAP_HOST}
 ldap_auth_dn = ${DOVECOT_LDAP_USER_DN}
 ldap_auth_dn_password = ${DOVECOT_LDAP_USER_PASSWORD}
 
 ldap_base = ${DOVECOT_LDAP_BASE:-}
+
+userdb static {
+  fields {
+    uid = vmail
+    gid = vmail
+    home = /home/vmail/%{user | domain}/%{user | username}
+  }
+}
 
 passdb ldap {
   ldap_filter = ${DOVECOT_LDAP_QUERY:-(&(objectClass=posixAccount)(uid=%{user\}))}
