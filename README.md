@@ -90,6 +90,11 @@ point to it.
 
 Please make sure the file is *not* world-readable! It is actually best, if it has the permissions `root:root 0400`.
 
+### `DOVECOT_SPAM_FOLDER` (optional)
+
+If set, e-mails with header `X-Spam-Status: Yes` are moved to the defined folder upon reception. Standard folder names
+are `Junk` or `Spam`.
+
 Data persistence
 ----------------
 

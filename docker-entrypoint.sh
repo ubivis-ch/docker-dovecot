@@ -127,6 +127,34 @@ passdb ldap {
 }
 " > /etc/dovecot/dovecot.conf
 
+if [ -n "${DOVECOT_SPAM_FOLDER}" ]; then
+    echo -n "
+namespace inbox {
+  mailbox ${DOVECOT_SPAM_FOLDER} {
+    auto = create
+    special_use = \Junk
+  }
+}
+
+sieve_script global_before {
+  type = before
+  path = /etc/dovecot/sieve/global_before.sieve
+}
+" >> /etc/dovecot/dovecot.conf
+
+    mkdir -p /etc/dovecot/sieve
+
+    echo -n "require [\"fileinto\", \"mailbox\"];
+
+if header :is \"X-Spam-Status\" \"Yes\" {
+    fileinto :create \"${DOVECOT_SPAM_FOLDER}\";
+    stop;
+}
+" > /etc/dovecot/sieve/global_before.sieve
+
+    sievec /etc/dovecot/sieve/global_before.sieve
+fi
+
 if [ "$#" -gt 0 ]; then
     exec "$@"
 else
