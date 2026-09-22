@@ -11,6 +11,6 @@ RUN adduser -s /sbin/nologin -D vmail
 
 COPY docker-entrypoint.sh /
 
-EXPOSE 143 24
+EXPOSE 143 24 4190
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]

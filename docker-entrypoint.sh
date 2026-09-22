@@ -42,6 +42,7 @@ log_path = /dev/stderr
 protocols {
   imap = yes
   lmtp = yes
+  sieve = yes
 }
 
 auth_mechanisms = plain
@@ -73,6 +74,26 @@ protocol lmtp {
   mail_plugins {
     sieve = yes
   }
+}
+
+service managesieve-login {
+  inet_listener sieve {
+    port = 4190
+  }
+}
+
+service managesieve {
+  process_limit = 1024
+}
+
+protocol sieve {
+  managesieve_max_line_length = 65536
+  managesieve_max_compile_errors = 5
+}
+
+sieve_script personal {
+  path = ~/sieve
+  active_path = ~/.dovecot.sieve
 }
 
 service anvil {
