@@ -32,12 +32,22 @@ if contains_old_style_variables "${DOVECOT_LDAP_QUERY}"; then
     exit 1
 fi
 
+haproxy_trusted_networks_line=""
+haproxy_enable_line=""
+
+if [ -n "${DOVECOT_PROXY}" ]; then
+    haproxy_trusted_networks_line="haproxy_trusted_networks = ${DOVECOT_PROXY}"
+    haproxy_enable_line="haproxy = yes"
+fi
+
 echo -n "
 dovecot_config_version = 2.4.2
 dovecot_storage_version = 2.4.0
 
 info_log_path = /dev/stdout
 log_path = /dev/stderr
+
+${haproxy_trusted_networks_line}
 
 protocols {
   imap = yes
@@ -56,11 +66,17 @@ namespace inbox {
   inbox = yes
 }
 
-
 ssl = required
 
 ssl_server_cert_file = ${DOVECOT_SSL_CERTIFICATE:-/etc/ssl/dovecot/server.pem}
 ssl_server_key_file = ${DOVECOT_SSL_PRIVATE_KEY:-/etc/ssl/dovecot/server.key}
+
+service imap-login {
+  inet_listener imap {
+    port = 143
+    ${haproxy_enable_line}
+  }
+}
 
 service lmtp {
   user = vmail
@@ -79,6 +95,7 @@ protocol lmtp {
 service managesieve-login {
   inet_listener sieve {
     port = 4190
+    ${haproxy_enable_line}
   }
 }
 
@@ -155,15 +172,4 @@ if header :is \"X-Spam-Status\" \"Yes\" {
     sievec /etc/dovecot/sieve/global_before.sieve
 fi
 
-if [ "$#" -gt 0 ]; then
-    exec "$@"
-else
-    /usr/sbin/dovecot
-
-    while true; do
-        inotifywait -qq -e modify $DOVECOT_SSL_CERTIFICATE
-        echo "$(date) Public key updated, therefore reloading Dovecot config ..."
-        sleep 1s
-        kill -HUP $(cat /var/run/dovecot/master.pid)
-    done
-fi
+exec "$@"

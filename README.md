@@ -90,10 +90,23 @@ point to it.
 
 Please make sure the file is *not* world-readable! It is actually best, if it has the permissions `root:root 0400`.
 
+### `DOVECOT_PROXY` (optional)
+
+If used behind a proxy, this should be set to either a single IPv4 address (e.g. `192.168.10.2`) or a network in CIDR notation (e.g. `172.16.0.0/16`), in order to show the users real IP addresses. It works without that setting even when
+behind a proxy, but logs would show the wrong addresses.
+
 ### `DOVECOT_SPAM_FOLDER` (optional)
 
 If set, e-mails with header `X-Spam-Status: Yes` are moved to the defined folder upon reception. Standard folder names
 are `Junk` or `Spam`.
+
+### `DOVECOT_EXPUNGE_SPAM_DAYS` (optional, needs `DOVECOT_SPAM_FOLDER` to be set)
+
+Deletes all messages in the "Spam" folder, that are older than the set number of days.
+
+### `DOVECOT_EXPUNGE_TRASH_DAYS` (optional)
+
+Deletes all messages in the "Trash" folder, that are older than the set number of days.
 
 Data persistence
 ----------------

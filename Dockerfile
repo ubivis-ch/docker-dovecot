@@ -10,7 +10,9 @@ RUN apk add --no-cache \
 RUN adduser -s /sbin/nologin -D vmail
 
 COPY docker-entrypoint.sh /
+COPY run*.sh /
 
 EXPOSE 143 24 4190
 
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["/run.sh"]
